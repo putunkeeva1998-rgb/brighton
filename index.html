@@ -129,7 +129,7 @@
         </div>
         
         <div id="admin-zone" class="hidden mt-8">
-            <button onclick="tg.sendData('admin_view')" class="w-full bg-blue-600 p-4 rounded-xl font-bold text-sm uppercase">
+            <button onclick="tg.sendData(JSON.stringify({action: 'admin_view'}))" class="w-full bg-blue-600 p-4 rounded-xl font-bold text-sm uppercase">
                 <i class="fas fa-user-shield mr-2"></i>Записи клиентов
             </button>
         </div>
@@ -261,10 +261,11 @@
                 document.getElementById('user-nick').innerText = "@" + (user.username || "id" + user.id);
                 if (user.photo_url) document.getElementById('user-photo').src = user.photo_url;
                 
-                // ЗАМЕНИТЕ 5195046205 НА ВАШ ID
                 if (user.id === 387881523) {
                     document.getElementById('admin-zone').classList.remove('hidden');
                 }
+            }
+        }
             }
         }
 
