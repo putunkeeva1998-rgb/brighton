@@ -3,171 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Brighton Beach</title>
+    <title>Brighton Beach - Premium</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        :root { --bg-card: #1b1b3a; --rose: #e94560; }
+        :root {
+            --bg-deep: #0f0c29;
+            --bg-card: #1b1b3a;
+            --accent: #9d50bb;
+            --rose: #e94560;
+            --text-main: #ffffff;
+        }
         body { 
             background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
-            color: white; font-family: sans-serif; margin: 0; padding-bottom: 100px; min-height: 100vh;
+            color: var(--text-main); 
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            margin: 0; padding-bottom: 100px;
+            min-height: 100vh;
         }
-        .category-wrapper { background: rgba(255, 255, 255, 0.05); border-radius: 15px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); overflow: hidden; }
-        .category-header { padding: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: rgba(157, 80, 187, 0.1); }
-        .service-list { display: none; padding: 10px; }
+        .category-wrapper {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .category-header {
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            background: rgba(157, 80, 187, 0.1);
+        }
+        .service-list { display: none; padding: 10px; border-top: 1px solid rgba(255,255,255,0.05); }
         .service-list.open { display: block; }
-        .service-card { background: var(--bg-card); padding: 12px; border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid transparent; }
-        .service-card.selected { border-color: var(--rose); background: rgba(233, 69, 96, 0.1); }
-        .check-circle { width: 22px; height: 22px; border: 2px solid #444; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-        .selected .check-circle { background: var(--rose); border-color: var(--rose); }
-        .time-btn { background: #1b1b3a; border: 1px solid #333; padding: 10px; border-radius: 10px; text-align: center; cursor: pointer; }
-        .time-btn.active { background: var(--rose); border-color: white; }
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 70px; background: #0f0c29; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); z-index: 1000; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; opacity: 0.5; color: white; cursor: pointer; font-size: 11px; }
-        .nav-item.active { opacity: 1; color: var(--rose); }
-        input { background: #1b1b3a !important; color: white !important; border: 1px solid #333 !important; padding: 12px; border-radius: 10px; width: 100%; outline: none; }
-    </style>
-</head>
-<body>
 
-    <div id="services-tab" class="p-4 tab-content">
-        <div class="text-center mb-6">
-            <h1 class="text-2xl font-bold italic">Brighton Beach</h1>
-            <p class="text-[10px] text-slate-400">г. Москва, м. Бутырская</p>
-        </div>
-        
-        <div id="order-summary" class="bg-[#1b1b3a] p-3 rounded-lg mb-4 text-sm border border-slate-700 text-center font-bold">Выберите услуги...</div>
-
-        <div id="services-container"></div>
-    </div>
-
-    <div id="booking-tab" class="p-4 hidden tab-content">
-        <h2 class="text-xl font-bold mb-6 text-center text-rose-500">Оформить запись</h2>
-        <div class="space-y-4">
-            <div>
-                <label class="text-[10px] uppercase text-slate-400 ml-1">Дата</label>
-                <input type="date" id="book-date" onchange="generateSlots()">
-            </div>
-            <div id="time-section" class="hidden">
-                <label class="text-[10px] uppercase text-slate-400 ml-1">Время</label>
-                <div id="time-slots" class="grid grid-cols-3 gap-2 mt-1"></div>
-            </div>
-            <div>
-                <label class="text-[10px] uppercase text-slate-400 ml-1">Ваше имя</label>
-                <input type="text" id="client-name" placeholder="Введите имя">
-            </div>
-            <button onclick="sendBooking()" class="w-full bg-rose-600 p-4 rounded-xl font-bold mt-4 uppercase shadow-lg">Подтвердить запись</button>
-        </div>
-    </div>
-
-    <nav class="bottom-nav">
-        <div class="nav-item active" onclick="switchTab('services', this)"><i class="fas fa-list text-xl mb-1"></i>Каталог</div>
-        <div class="nav-item" onclick="switchTab('booking', this)"><i class="fas fa-calendar-alt text-xl mb-1"></i>Запись</div>
-    </nav>
-
-    <script>
-        let tg = window.Telegram.WebApp;
-        tg.expand();
-        let selectedServices = [];
-        let selectedTime = "";
-
-        // Данные всех услуг
-        const allServices = {
-            "Ногтевой сервис": [
-                ["Аппаратный маникюр", 690], ["Выравнивание пластины", 390], ["Гелевое укрепление", 590], ["Наращивание до 4 длины", 2000], ["Покрытие френч", 300], ["Педикюр (стопы+пальцы)", 1500], ["Педикюр + гель-лак", 2600], ["Снятие гель-лака", 200]
-            ],
-            "Наращивание ресниц": [
-                ["Наращивание 1D", 2100], ["Наращивание 2D", 2300], ["Наращивание 3D", 2500], ["Голливуд", 2990], ["Lami ресниц", 1790], ["Снятие", 390]
-            ],
-            "Брови": [
-                ["Ламинирование бровей", 1790], ["Окрашивание", 800], ["Коррекция бровей", 1000]
-            ],
-            "Перманентный макияж": [
-                ["Пудровые брови", 5990], ["Напыление губ", 5990], ["Стрелки", 5990]
-            ]
-        };
-
-        // Отрисовка каталога
-        const container = document.getElementById('services-container');
-        for (const [cat, list] of Object.entries(allServices)) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'category-wrapper';
-            wrapper.innerHTML = `
-                <div class="category-header" onclick="toggleCategory(this)">
-                    <span class="font-bold text-sm">${cat}</span>
-                    <i class="fas fa-chevron-down text-xs"></i>
-                </div>
-                <div class="service-list">
-                    ${list.map(s => `
-                        <div class="service-card" onclick="toggleService(this, '${s[0]}', ${s[1]})">
-                            <div class="text-sm">${s[0]}<br><span class="text-rose-400 font-bold">${s[1]} ₽</span></div>
-                            <div class="check-circle"><i class="fas fa-check text-[10px] hidden"></i></div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-            container.appendChild(wrapper);
+        .service-card {
+            background: var(--bg-card);
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid transparent;
+            transition: 0.2s;
         }
-
-        function switchTab(tabId, el) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
-            document.getElementById(tabId + '-tab').classList.remove('hidden');
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            el.classList.add('active');
+        .service-card.selected {
+            border-color: var(--rose);
+            background: rgba(233, 69, 96, 0.1);
         }
-
-        function toggleCategory(el) {
-            const list = el.nextElementSibling;
-            list.classList.toggle('open');
-            el.querySelector('i').classList.toggle('fa-chevron-up');
+        .check-circle {
+            width: 22px; height: 22px;
+            border: 2px solid #444;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
         }
-
-        function toggleService(el, name, price) {
-            el.classList.toggle('selected');
-            el.querySelector('.fa-check').classList.toggle('hidden');
-            const idx = selectedServices.findIndex(s => s.name === name);
-            if (idx > -1) selectedServices.splice(idx, 1);
-            else selectedServices.push({name, price});
-            
-            const total = selectedServices.reduce((a, b) => a + b.price, 0);
-            document.getElementById('order-summary').innerText = selectedServices.length > 0 ? 
-                `Выбрано: ${selectedServices.length} | Итого: ${total} ₽` : "Выберите услуги...";
+        .selected .check-circle {
+            background: var(--rose);
+            border-color: var(--rose);
         }
-
-        function generateSlots() {
-            const slotContainer = document.getElementById('time-slots');
-            slotContainer.innerHTML = "";
-            document.getElementById('time-section').classList.remove('hidden');
-            ["10:00", "12:00", "14:00", "16:00", "18:00", "20:00"].forEach(time => {
-                const div = document.createElement('div');
-                div.className = "time-btn";
-                div.innerText = time;
-                div.onclick = () => {
-                    document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
-                    div.classList.add('active');
-                    selectedTime = time;
-                };
-                slotContainer.appendChild(div);
-            });
-        }
-
-        function sendBooking() {
-            const name = document.getElementById('client-name').value;
-            const date = document.getElementById('book-date').value;
-            if (!name || !date || !selectedTime || selectedServices.length === 0) {
-                tg.showAlert("Пожалуйста, выберите услуги, дату, время и введите имя!");
-                return;
-            }
-            const data = {
-                client: name,
-                date: date,
-                time: selectedTime,
-                services: selectedServices,
-                total: selectedServices.reduce((a, b) => a + b.price, 0)
-            };
-            tg.sendData(JSON.stringify(data));
-        }
-    </script>
-</body>
-</html>
+        .bottom-
