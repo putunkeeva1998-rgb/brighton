@@ -65,6 +65,12 @@
             background: var(--rose);
             border-color: var(--rose);
         }
+        /* Стиль для выбранного времени */
+        .time-btn.active {
+            background-color: var(--rose) !important;
+            border-color: white !important;
+            transform: scale(1.05);
+        }
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; right: 0;
             height: 70px; background: rgba(15, 12, 41, 0.95);
@@ -73,6 +79,8 @@
             border-top: 1px solid rgba(255,255,255,0.1);
             z-index: 1000;
         }
+        .nav-item { display: flex; flex-direction: column; align-items: center; opacity: 0.5; font-size: 10px; transition: 0.3s; color: white; }
+        .nav-item.active { opacity: 1; color: var(--rose); }
         input { background: #1b1b3a !important; color: white !important; border: 1px solid #333 !important; }
     </style>
 </head>
@@ -82,6 +90,10 @@
         <div class="text-center mb-6">
             <h1 class="text-3xl font-serif italic">Brighton Beach</h1>
             <p class="text-[11px] text-slate-400 mt-1">г. Москва, м. Бутырская</p>
+        </div>
+
+        <div id="order-summary" class="bg-[#1b1b3a] p-3 rounded-lg mb-4 text-xs border border-slate-700">
+            Выберите услуги в каталоге...
         </div>
 
         <div class="category-wrapper">
@@ -139,76 +151,32 @@
                 </script>
             </div>
         </div>
-
-        <div class="category-wrapper">
-            <div class="category-header" onclick="toggleCategory(this)">
-                <span class="font-bold">Брови</span>
-                <i class="fas fa-chevron-down text-xs"></i>
-            </div>
-            <div class="service-list">
-                <script>
-                    const brows = [
-                        ["Ламинирование бровей", 1790], ["Окрашивание (краска)", 800],
-                        ["Коррекция бровей", 1000], ["Коррекция (воск)", 600]
-                    ];
-                    brows.forEach(s => {
-                        document.write(`
-                            <div class="service-card" onclick="toggleService(this, '${s[0]}', ${s[1]})">
-                                <div><div class="text-sm">${s[0]}</div><div class="text-rose-400 font-bold text-xs">${s[1]} ₽</div></div>
-                                <div class="check-circle"><i class="fas fa-check text-[10px] text-white hidden"></i></div>
-                            </div>
-                        `);
-                    });
-                </script>
-            </div>
         </div>
-
-        <div class="category-wrapper">
-            <div class="category-header" onclick="toggleCategory(this)">
-                <span class="font-bold">Перманентный макияж</span>
-                <i class="fas fa-chevron-down text-xs"></i>
-            </div>
-            <div class="service-list">
-                <script>
-                    const perm = [
-                        ["Пудровые брови", 5990], ["Напыление губ", 5990], ["Стрелки", 5990],
-                        ["Перекрытие старого татуажа", 5990], ["Коррекция (губы/брови)", 5990],
-                        ["Обезболивающее", 0]
-                    ];
-                    perm.forEach(s => {
-                        document.write(`
-                            <div class="service-card" onclick="toggleService(this, '${s[0]}', ${s[1] === 0 ? 'В подарок' : s[1]})">
-                                <div><div class="text-sm">${s[0]}</div><div class="text-rose-400 font-bold text-xs">${s[1] === 0 ? 'В ПОДАРОК' : s[1] + ' ₽'}</div></div>
-                                <div class="check-circle"><i class="fas fa-check text-[10px] text-white hidden"></i></div>
-                            </div>
-                        `);
-                    });
-                </script>
-            </div>
-        </div>
-    </div>
 
     <div id="booking-tab" class="p-4 hidden tab-content">
-    <h1 class="text-xl font-bold mb-6 text-rose-500 text-center">Запись на визит</h1>
-    
-    <div class="space-y-4">
-        <div>
-            <label class="text-[10px] uppercase text-slate-400">1. Выберите дату</label>
-            <input type="date" id="book-date" onchange="generateTimeSlots()" class="w-full p-4 rounded-xl outline-none mt-1">
-        </div>
-
-        <div id="time-section" class="hidden">
-            <label class="text-[10px] uppercase text-slate-400">2. Выберите время</label>
-            <div id="time-slots" class="grid grid-cols-3 gap-2 mt-2"></div>
-        </div>
-
-        <input type="text" id="client-name" placeholder="Ваше имя" class="w-full p-4 rounded-xl outline-none">
+        <h1 class="text-xl font-bold mb-6 text-rose-500 text-center">Запись на визит</h1>
         
-        <button onclick="sendBooking()" class="w-full bg-gradient-to-r from-purple-600 to-rose-600 text-white p-5 rounded-xl font-bold mt-8 shadow-lg uppercase">
-            Подтвердить запись
-        </button>
+        <div class="space-y-4">
+            <div>
+                <label class="text-[10px] uppercase text-slate-400 ml-1">1. Выберите дату</label>
+                <input type="date" id="book-date" onchange="generateTimeSlots()" class="w-full p-4 rounded-xl outline-none mt-1">
+            </div>
+
+            <div id="time-section" class="hidden">
+                <label class="text-[10px] uppercase text-slate-400 ml-1">2. Выберите время</label>
+                <div id="time-slots" class="grid grid-cols-3 gap-2 mt-2"></div>
+            </div>
+
+            <div>
+                <label class="text-[10px] uppercase text-slate-400 ml-1">3. Ваше имя</label>
+                <input type="text" id="client-name" placeholder="Введите имя" class="w-full p-4 rounded-xl outline-none mt-1">
+            </div>
+            
+            <button onclick="sendBooking()" class="w-full bg-gradient-to-r from-purple-600 to-rose-600 text-white p-5 rounded-xl font-bold mt-8 shadow-lg uppercase">
+                Подтвердить запись
+            </button>
+        </div>
     </div>
-</div>
 
     <div id="profile-tab" class="p-4 hidden tab-content text-center">
         <div class="mt-10">
@@ -231,7 +199,11 @@
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
+        
         let clientUsername = "Не указан";
+        let selectedServices = [];
+        let selectedTime = ""; // Переменная для хранения выбранного времени
+
         if (tg.initDataUnsafe.user) {
             document.getElementById('user-name').innerText = tg.initDataUnsafe.user.first_name;
             clientUsername = tg.initDataUnsafe.user.username ? "@" + tg.initDataUnsafe.user.username : "Скрыт";
@@ -239,7 +211,14 @@
             if (tg.initDataUnsafe.user.photo_url) document.getElementById('user-photo').src = tg.initDataUnsafe.user.photo_url;
         }
 
-        let selectedServices = [];
+        function showTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.getElementById(tab + '-tab').classList.remove('hidden');
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            // Фикс для события клика
+            if (event) event.currentTarget.classList.add('active');
+            if(tab === 'profile') loadHistory();
+        }
 
         function toggleCategory(el) {
             const list = el.nextElementSibling;
@@ -266,57 +245,60 @@
         function updateSummary() {
             const summary = document.getElementById('order-summary');
             if (selectedServices.length === 0) {
-                summary.innerHTML = "Выберите услуги...";
+                summary.innerHTML = "Выберите услуги в каталоге...";
                 return;
             }
             let total = selectedServices.reduce((sum, s) => sum + s.price, 0);
-            summary.innerHTML = `<div class='flex justify-between'><span>Выбрано: ${selectedServices.length}</span><span class='text-rose-400 font-bold'>${total} ₽</span></div>`;
+            summary.innerHTML = `<div class='flex justify-between'><span>Выбрано услуг: ${selectedServices.length}</span><span class='text-rose-400 font-bold'>${total} ₽</span></div>`;
         }
 
-        function showTab(tab) {
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
-            document.getElementById(tab + '-tab').classList.remove('hidden');
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-            if(tab === 'profile') loadHistory();
+        // ВАША НОВАЯ ФУНКЦИЯ ГЕНЕРАЦИИ ВРЕМЕНИ
+        function generateTimeSlots() {
+            const timeSection = document.getElementById('time-section');
+            const slotsContainer = document.getElementById('time-slots');
+            const allHours = ["10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"];
+            
+            slotsContainer.innerHTML = "";
+            timeSection.classList.remove('hidden');
+
+            allHours.forEach(time => {
+                const btn = document.createElement('button');
+                btn.innerText = time;
+                btn.className = "time-btn bg-slate-800 p-2 rounded-lg text-sm text-white border border-transparent";
+                btn.onclick = function() {
+                    document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    selectedTime = time;
+                };
+                slotsContainer.appendChild(btn);
+            });
         }
 
         function sendBooking() {
-    const name = document.getElementById('client-name').value;
-    const date = document.getElementById('book-date').value;
-    
-    // Убрали проверку телефона, так как его нет в форме
-    if (!name || !date || selectedServices.length === 0) {
-        tg.showAlert("Заполните имя, дату и выберите услуги!");
-        return;
-    }
-    
-    const data = {
-        client: name,
-        username: clientUsername, // Берется из Telegram автоматически
-        date: date,
-        services: selectedServices,
-        total: selectedServices.reduce((sum, s) => sum + s.price, 0)
-    };
-    
-    tg.sendData(JSON.stringify(data)); // Отправка данных боту
-    tg.close();
-}
-           
+            const name = document.getElementById('client-name').value;
+            const date = document.getElementById('book-date').value;
+            
+            if (!name || !date || !selectedTime || selectedServices.length === 0) {
+                tg.showAlert("Заполните имя, дату, ВРЕМЯ и выберите услуги!");
+                return;
+            }
+            
+            const data = {
+                client: name,
+                username: clientUsername,
+                date: date,
+                time: selectedTime, // Теперь время отправляется!
+                services: selectedServices,
+                total: selectedServices.reduce((sum, s) => sum + s.price, 0)
+            };
+            
+            tg.sendData(JSON.stringify(data));
+            tg.close();
+        }
 
         function loadHistory() {
             const list = document.getElementById('history-list');
-            let history = JSON.parse(localStorage.getItem('brighton_history') || '[]');
-            if (history.length === 0) {
-                list.innerHTML = "<p class='text-center opacity-30 text-xs mt-4'>Записей нет</p>";
-                return;
-            }
-            list.innerHTML = history.slice(0, 5).map(item => `
-                <div class="bg-[#1b1b3a] p-3 rounded-lg border-l-2 border-purple-500">
-                    <div class="flex justify-between text-[10px] opacity-50"><span>${item.date}</span><span>${item.total} ₽</span></div>
-                    <div class="text-[11px] truncate">${item.services.map(s => s.name).join(', ')}</div>
-                </div>
-            `).join('');
+            list.innerHTML = "<p class='text-center opacity-30 text-xs mt-4'>История временно недоступна</p>";
         }
     </script>
 </body>
