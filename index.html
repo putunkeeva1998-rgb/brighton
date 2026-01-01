@@ -189,21 +189,26 @@
     </div>
 
     <div id="booking-tab" class="p-4 hidden tab-content">
-        <h1 class="text-xl font-bold mb-6 text-rose-500 text-center">Ваша запись</h1>
-        <div id="order-summary" class="bg-[#1b1b3a] p-4 rounded-xl mb-6 text-sm border border-slate-700">
-            Выберите услуги в каталоге
+    <h1 class="text-xl font-bold mb-6 text-rose-500 text-center">Запись на визит</h1>
+    
+    <div class="space-y-4">
+        <div>
+            <label class="text-[10px] uppercase text-slate-400">1. Выберите дату</label>
+            <input type="date" id="book-date" onchange="generateTimeSlots()" class="w-full p-4 rounded-xl outline-none mt-1">
         </div>
-        <div class="space-y-4">
-            <input type="text" id="client-name" placeholder="Введите ваше имя" class="w-full p-4 rounded-xl outline-none">
-            <div class="pt-2">
-                <label class="text-[10px] uppercase text-slate-400 ml-1">Желаемая дата (день и месяц)</label>
-                <input type="text" id="book-date" placeholder="Например: 15 октября" class="w-full p-4 rounded-xl outline-none mt-1">
-            </div>
-            <button onclick="sendBooking()" class="w-full bg-gradient-to-r from-purple-600 to-rose-600 text-white p-5 rounded-xl font-bold mt-8 shadow-lg uppercase tracking-wider">
-                Подтвердить запись
-            </button>
+
+        <div id="time-section" class="hidden">
+            <label class="text-[10px] uppercase text-slate-400">2. Выберите время</label>
+            <div id="time-slots" class="grid grid-cols-3 gap-2 mt-2"></div>
         </div>
+
+        <input type="text" id="client-name" placeholder="Ваше имя" class="w-full p-4 rounded-xl outline-none">
+        
+        <button onclick="sendBooking()" class="w-full bg-gradient-to-r from-purple-600 to-rose-600 text-white p-5 rounded-xl font-bold mt-8 shadow-lg uppercase">
+            Подтвердить запись
+        </button>
     </div>
+</div>
 
     <div id="profile-tab" class="p-4 hidden tab-content text-center">
         <div class="mt-10">
