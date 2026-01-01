@@ -66,14 +66,12 @@
             border-color: var(--rose);
         }
         
-        /* Сетка времени */
         .time-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
         .time-slot { 
             background: var(--bg-card); padding: 8px; border-radius: 8px; 
             text-align: center; font-size: 12px; border: 1px solid #333; cursor: pointer; 
         }
         .time-slot.selected { background: var(--rose); border-color: var(--rose); }
-        .time-slot.busy { opacity: 0.2; cursor: not-allowed; background: #000; }
 
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; right: 0;
@@ -83,9 +81,10 @@
             border-top: 1px solid rgba(255,255,255,0.1);
             z-index: 1000;
         }
-        .nav-item { display: flex; flex-direction: column; align-items: center; opacity: 0.5; cursor: pointer; color: white; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; opacity: 0.5; cursor: pointer; color: white; text-decoration: none; }
         .nav-item.active { opacity: 1; color: var(--rose); }
         input { background: #1b1b3a !important; color: white !important; border: 1px solid #333 !important; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
@@ -151,8 +150,8 @@
         tg.expand();
         
         let selectedTime = null;
+        let selectedServices = [];
 
-        // ВАШИ УСЛУГИ (БЕЗ ИЗМЕНЕНИЙ)
         const servicesData = {
             "Ногтевой сервис": [
                 ["Аппаратный маникюр", 690], ["Выравнивание пластины", 390], ["Гелевое укрепление", 590],
@@ -190,8 +189,6 @@
             `;
             container.appendChild(wrap);
         }
-
-        let selectedServices = [];
 
         function generateTimeSlots() {
             const grid = document.getElementById('time-grid');
@@ -255,8 +252,8 @@
         }
 
         function loadProfile() {
-            if (tg.initDataUnsafe.user) {
-                const user = tg.initDataUnsafe.user;
+            const user = tg.initDataUnsafe.user;
+            if (user) {
                 document.getElementById('user-name').innerText = user.first_name;
                 document.getElementById('user-nick').innerText = "@" + (user.username || "id" + user.id);
                 if (user.photo_url) document.getElementById('user-photo').src = user.photo_url;
@@ -264,8 +261,6 @@
                 if (user.id === 387881523) {
                     document.getElementById('admin-zone').classList.remove('hidden');
                 }
-            }
-        }
             }
         }
 
@@ -286,7 +281,6 @@
                 total: selectedServices.reduce((sum, s) => sum + s.price, 0)
             };
             tg.sendData(JSON.stringify(data));
-            tg.close();
         }
     </script>
 </body>
