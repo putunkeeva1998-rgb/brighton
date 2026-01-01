@@ -65,6 +65,16 @@
             background: var(--rose);
             border-color: var(--rose);
         }
+        
+        /* Сетка времени */
+        .time-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
+        .time-slot { 
+            background: var(--bg-card); padding: 8px; border-radius: 8px; 
+            text-align: center; font-size: 12px; border: 1px solid #333; cursor: pointer; 
+        }
+        .time-slot.selected { background: var(--rose); border-color: var(--rose); }
+        .time-slot.busy { opacity: 0.2; cursor: not-allowed; background: #000; }
+
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; right: 0;
             height: 70px; background: rgba(15, 12, 41, 0.95);
@@ -85,7 +95,6 @@
             <h1 class="text-3xl font-serif italic">Brighton Beach</h1>
             <p class="text-[11px] text-slate-400 mt-1">г. Москва, м. Бутырская</p>
         </div>
-
         <div id="catalog-container"></div>
     </div>
 
@@ -97,9 +106,15 @@
         <div class="space-y-4">
             <input type="text" id="client-name" placeholder="Введите ваше имя" class="w-full p-4 rounded-xl outline-none">
             <div class="pt-2">
-                <label class="text-[10px] uppercase text-slate-400 ml-1">Желаемая дата (день и время)</label>
-                <input type="text" id="book-date" placeholder="Например: 15 октября, 14:00" class="w-full p-4 rounded-xl outline-none mt-1">
+                <label class="text-[10px] uppercase text-slate-400 ml-1">Выберите дату</label>
+                <input type="date" id="book-date" class="w-full p-4 rounded-xl outline-none mt-1" onchange="generateTimeSlots()">
             </div>
+            
+            <div id="time-section" class="hidden">
+                <label class="text-[10px] uppercase text-slate-400 ml-1">Выберите время</label>
+                <div id="time-grid" class="time-grid"></div>
+            </div>
+
             <button onclick="sendBooking()" class="w-full bg-gradient-to-r from-purple-600 to-rose-600 text-white p-5 rounded-xl font-bold mt-8 shadow-lg uppercase tracking-wider">
                 Подтвердить запись
             </button>
@@ -112,6 +127,13 @@
             <h2 id="user-name" class="text-xl font-bold">Клиент</h2>
             <p id="user-nick" class="text-rose-400 text-sm">@nickname</p>
         </div>
+        
+        <div id="admin-zone" class="hidden mt-8">
+            <button onclick="tg.sendData('admin_view')" class="w-full bg-blue-600 p-4 rounded-xl font-bold text-sm uppercase">
+                <i class="fas fa-user-shield mr-2"></i>Записи клиентов
+            </button>
+        </div>
+
         <div class="mt-10 text-left">
             <h3 class="text-xs font-bold uppercase mb-4 opacity-50 ml-2">История (локально)</h3>
             <div id="history-list" class="space-y-3"></div>
@@ -128,6 +150,9 @@
         let tg = window.Telegram.WebApp;
         tg.expand();
         
+        let selectedTime = null;
+
+        // ВАШИ УСЛУГИ (БЕЗ ИЗМЕНЕНИЙ)
         const servicesData = {
             "Ногтевой сервис": [
                 ["Аппаратный маникюр", 690], ["Выравнивание пластины", 390], ["Гелевое укрепление", 590],
@@ -167,6 +192,27 @@
         }
 
         let selectedServices = [];
+
+        function generateTimeSlots() {
+            const grid = document.getElementById('time-grid');
+            const section = document.getElementById('time-section');
+            const slots = ["10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"];
+            
+            grid.innerHTML = '';
+            section.classList.remove('hidden');
+            
+            slots.forEach(time => {
+                const div = document.createElement('div');
+                div.className = 'time-slot';
+                div.innerText = time;
+                div.onclick = () => {
+                    document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+                    div.classList.add('selected');
+                    selectedTime = time;
+                };
+                grid.appendChild(div);
+            });
+        }
 
         function toggleCategory(el) {
             const list = el.nextElementSibling;
@@ -210,23 +256,31 @@
 
         function loadProfile() {
             if (tg.initDataUnsafe.user) {
-                document.getElementById('user-name').innerText = tg.initDataUnsafe.user.first_name;
-                document.getElementById('user-nick').innerText = "@" + (tg.initDataUnsafe.user.username || "id" + tg.initDataUnsafe.user.id);
-                if (tg.initDataUnsafe.user.photo_url) document.getElementById('user-photo').src = tg.initDataUnsafe.user.photo_url;
+                const user = tg.initDataUnsafe.user;
+                document.getElementById('user-name').innerText = user.first_name;
+                document.getElementById('user-nick').innerText = "@" + (user.username || "id" + user.id);
+                if (user.photo_url) document.getElementById('user-photo').src = user.photo_url;
+                
+                // ЗАМЕНИТЕ 5195046205 НА ВАШ ID
+                if (user.id === 5195046205) {
+                    document.getElementById('admin-zone').classList.remove('hidden');
+                }
             }
         }
 
         function sendBooking() {
             const name = document.getElementById('client-name').value;
             const date = document.getElementById('book-date').value;
-            if (!name || !date || selectedServices.length === 0) {
-                tg.showAlert("Заполните данные и выберите услуги!");
+            if (!name || !date || !selectedTime || selectedServices.length === 0) {
+                tg.showAlert("Заполните имя, выберите дату, время и услуги!");
                 return;
             }
             const data = {
+                action: "booking",
                 client: name,
                 username: tg.initDataUnsafe.user ? "@" + tg.initDataUnsafe.user.username : "Скрыт",
                 date: date,
+                time: selectedTime,
                 services: selectedServices,
                 total: selectedServices.reduce((sum, s) => sum + s.price, 0)
             };
