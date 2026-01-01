@@ -9,185 +9,222 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         :root {
-            --bg-deep: #1a1a2e;
-            --bg-card: #16213e;
-            --accent: #e94560;
+            --bg-deep: #0f0c29;
+            --bg-card: #1b1b3a;
+            --accent: #9d50bb;
+            --rose: #e94560;
             --text-main: #ffffff;
-            --text-hint: #94a3b8;
         }
         body { 
-            background-color: var(--bg-deep); 
+            background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
             color: var(--text-main); 
-            font-family: 'Georgia', serif;
-            margin: 0; padding-bottom: 90px;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            margin: 0; padding-bottom: 100px;
+            min-height: 100vh;
         }
+        .category-wrapper {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .category-header {
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            background: rgba(157, 80, 187, 0.1);
+        }
+        .service-list { display: none; padding: 10px; border-top: 1px solid rgba(255,255,255,0.05); }
+        .service-list.open { display: block; }
+
         .service-card {
-            background-color: var(--bg-card);
-            border: 1px solid #2e3a59;
-            transition: all 0.2s ease;
+            background: var(--bg-card);
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid transparent;
         }
         .service-card.selected {
-            border-color: var(--accent);
-            background-color: #1f2a48;
+            border-color: var(--rose);
+            background: rgba(233, 69, 96, 0.1);
+        }
+        .check-circle {
+            width: 22px; height: 22px;
+            border: 2px solid #444;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            transition: 0.2s;
+        }
+        .selected .check-circle {
+            background: var(--rose);
+            border-color: var(--rose);
         }
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; right: 0;
-            height: 75px; background: #0f3460;
-            border-top: 1px solid #1a1a2e;
+            height: 70px; background: rgba(15, 12, 41, 0.95);
+            backdrop-filter: blur(10px);
             display: flex; justify-content: space-around; align-items: center;
-            z-index: 1000;
+            border-top: 1px solid rgba(255,255,255,0.1);
         }
-        .nav-item { display: flex; flex-direction: column; align-items: center; font-size: 11px; color: var(--text-hint); }
-        .nav-item.active { color: var(--accent); font-weight: bold; }
-        .hidden { display: none; }
-        .category-title { color: var(--accent); letter-spacing: 1px; border-left: 3px solid var(--accent); padding-left: 10px; margin-top: 25px; }
-        input { background: #16213e !important; color: white !important; border: 1px solid #2e3a59 !important; }
-        
-        /* Стилизация скролла */
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+        input { background: #1b1b3a !important; color: white !important; border: 1px solid #333 !important; }
     </style>
 </head>
 <body>
 
     <div id="services-tab" class="p-4 tab-content">
         <div class="text-center mb-6">
-            <h1 class="text-3xl italic text-white">Brighton Beach</h1>
-            <p class="text-[10px] uppercase tracking-[0.2em] text-rose-500 font-bold">Студия красоты</p>
-            <p class="text-[11px] text-slate-400 mt-1"><i class="fas fa-location-dot text-rose-500"></i> г. Москва, м. Бутырская</p>
+            <h1 class="text-3xl font-serif italic">Brighton Beach</h1>
+            <p class="text-[11px] text-slate-400 mt-1">г. Москва, м. Бутырская</p>
         </div>
 
-        <h2 class="category-title text-sm font-bold mb-4 uppercase">Ногтевой сервис</h2>
-        <div class="space-y-2 mb-6">
-            <script>
-                const nails = [
-                    ["Аппаратный маникюр", 690], ["Выравнивание пластины", 390], ["Гелевое укрепление", 590],
-                    ["Наращивание ногтей (до 4)", 2000], ["Покрытие френч", 300], ["Цветной/Геом. френч", 390],
-                    ["Матовый топ", 200], ["Омбрэ (10 ногтей)", 500], ["Светоотражающий лак", 100],
-                    ["Сухоцветы (1 ноготь)", 100], ["Втирка (1 ноготь)", 50], ["Дизайн (слайдер/фольга)", 50],
-                    ["Наращивание 1 ногтя", 200], ["Ремонт ногтя", 200], ["Педикюр (стопы+пальцы)", 1500],
-                    ["Smart-педикюр (доп)", 590], ["Педикюр (пальчики)", 1300], ["Педикюр (мужской)", 2500],
-                    ["Педикюр + Гель-лак (полный)", 2600], ["Педикюр + Гель-лак (пальцы)", 1890],
-                    ["Снятие гель-лака", 200], ["Снятие геля/наращивания", 390]
-                ];
-                nails.forEach(s => {
-                    document.write(`
-                        <div class="service-card p-3 rounded-xl flex justify-between items-center" onclick="toggleService(this, '${s[0]}', ${s[1]})">
-                            <div class="flex items-center gap-3">
-                                <div class="check-box w-5 h-5 border border-slate-600 rounded flex items-center justify-center"><i class="fas fa-check text-[10px] hidden text-rose-500"></i></div>
-                                <span class="text-xs">${s[0]}</span>
+        <div class="category-wrapper">
+            <div class="category-header" onclick="toggleCategory(this)">
+                <span class="font-bold">Ногтевой сервис</span>
+                <i class="fas fa-chevron-down text-xs"></i>
+            </div>
+            <div class="service-list">
+                <script>
+                    const nails = [
+                        ["Аппаратный маникюр", 690], ["Выравнивание пластины", 390], ["Гелевое укрепление", 590],
+                        ["Наращивание до 4 длины", 2000], ["Покрытие френч", 300], ["Снятие гель-лака", 200],
+                        ["Педикюр (стопы+пальцы)", 1500], ["Педикюр + гель-лак", 2600]
+                    ];
+                    nails.forEach(s => {
+                        document.write(`
+                            <div class="service-card" onclick="toggleService(this, '${s[0]}', ${s[1]})">
+                                <div><div class="text-sm">${s[0]}</div><div class="text-rose-400 font-bold">${s[1]} ₽</div></div>
+                                <div class="check-circle"><i class="fas fa-check text-[10px] text-white hidden"></i></div>
                             </div>
-                            <span class="font-bold text-rose-400 text-sm">${s[1]} ₽</span>
-                        </div>
-                    `);
-                });
-            </script>
+                        `);
+                    });
+                </script>
+            </div>
         </div>
 
-        <h2 class="category-title text-sm font-bold mb-4 uppercase">Наращивание ресниц</h2>
-        <div class="space-y-2 mb-6">
-            <script>
-                const lashes = [
-                    ["Наращивание 1Д", 2100], ["Наращивание 1.5Д", 2100], ["Наращивание 2Д", 2300],
-                    ["Наращивание 2.5Д", 2300], ["Наращивание 3Д", 2500], ["Наращивание 3.5Д", 2500],
-                    ["Наращивание 4Д", 2700], ["Голливудский объем", 2990], ["Изгиб L/M", 300],
-                    ["Уголки", 1500], ["Цветные ресницы", 300], ["Коррекция ресниц", 1500],
-                    ["Снятие ресниц", 300], ["Эффект Кайли/Мокрый", 300], ["Lami ресниц", 1790]
-                ];
-                lashes.forEach(s => {
-                    document.write(`
-                        <div class="service-card p-3 rounded-xl flex justify-between items-center" onclick="toggleService(this, '${s[0]}', ${s[1]})">
-                            <div class="flex items-center gap-3">
-                                <div class="check-box w-5 h-5 border border-slate-600 rounded flex items-center justify-center"><i class="fas fa-check text-[10px] hidden text-rose-500"></i></div>
-                                <span class="text-xs">${s[0]}</span>
+        <div class="category-wrapper">
+            <div class="category-header" onclick="toggleCategory(this)">
+                <span class="font-bold">Ресницы и Брови</span>
+                <i class="fas fa-chevron-down text-xs"></i>
+            </div>
+            <div class="service-list">
+                <script>
+                    const lashes = [
+                        ["Наращивание 2Д", 2300], ["Наращивание 3Д", 2500], ["Голливудский объем", 2990],
+                        ["Ламинирование бровей", 1790], ["Коррекция бровей", 1000]
+                    ];
+                    lashes.forEach(s => {
+                        document.write(`
+                            <div class="service-card" onclick="toggleService(this, '${s[0]}', ${s[1]})">
+                                <div><div class="text-sm">${s[0]}</div><div class="text-rose-400 font-bold">${s[1]} ₽</div></div>
+                                <div class="check-circle"><i class="fas fa-check text-[10px] text-white hidden"></i></div>
                             </div>
-                            <span class="font-bold text-rose-400 text-sm">${s[1]} ₽</span>
-                        </div>
-                    `);
-                });
-            </script>
+                        `);
+                    });
+                </script>
+            </div>
         </div>
 
-        <h2 class="category-title text-sm font-bold mb-4 uppercase">Брови и Перманент</h2>
-        <div class="space-y-2 mb-6">
-            <script>
-                const brows = [
-                    ["Ламинирование бровей", 1790], ["Коррекция бровей", 1000], ["Коррекция (воск)", 600],
-                    ["Пудровые брови", 5990], ["Напыление губ", 5990], ["Перекрытие татуажа", 5990],
-                    ["Стрелки", 5990], ["Коррекция перманента", 5990]
-                ];
-                brows.forEach(s => {
-                    document.write(`
-                        <div class="service-card p-3 rounded-xl flex justify-between items-center" onclick="toggleService(this, '${s[0]}', ${s[1]})">
-                            <div class="flex items-center gap-3">
-                                <div class="check-box w-5 h-5 border border-slate-600 rounded flex items-center justify-center"><i class="fas fa-check text-[10px] hidden text-rose-500"></i></div>
-                                <span class="text-xs">${s[0]}</span>
+        <div class="category-wrapper">
+            <div class="category-header" onclick="toggleCategory(this)">
+                <span class="font-bold">Перманентный макияж</span>
+                <i class="fas fa-chevron-down text-xs"></i>
+            </div>
+            <div class="service-list">
+                <script>
+                    const perm = [
+                        ["Пудровые брови", 5990], ["Напыление губ", 5990], ["Стрелки", 5990]
+                    ];
+                    perm.forEach(s => {
+                        document.write(`
+                            <div class="service-card" onclick="toggleService(this, '${s[0]}', ${s[1]})">
+                                <div><div class="text-sm">${s[0]}</div><div class="text-rose-400 font-bold">${s[1]} ₽</div></div>
+                                <div class="check-circle"><i class="fas fa-check text-[10px] text-white hidden"></i></div>
                             </div>
-                            <span class="font-bold text-rose-400 text-sm">${s[1]} ₽</span>
-                        </div>
-                    `);
-                });
-            </script>
+                        `);
+                    });
+                </script>
+            </div>
         </div>
     </div>
 
     <div id="booking-tab" class="p-4 hidden tab-content">
-        <h1 class="text-xl font-bold mb-6 text-rose-500">Оформление записи</h1>
-        <div id="order-summary" class="bg-[#16213e] p-4 rounded-xl mb-6 text-sm border border-dashed border-slate-600">
-            Услуги не выбраны
+        <h1 class="text-xl font-bold mb-6 text-rose-500 text-center">Ваша запись</h1>
+        <div id="order-summary" class="bg-[#1b1b3a] p-4 rounded-xl mb-6 text-sm border border-slate-700">
+            Выберите услуги в каталоге
         </div>
+        
         <div class="space-y-4">
-            <input type="text" id="client-name" placeholder="Ваше имя" class="w-full p-4 rounded-xl outline-none">
-            <input type="tel" id="client-phone" placeholder="Телефон" class="w-full p-4 rounded-xl outline-none">
-            <input type="date" id="book-date" class="w-full p-4 rounded-xl outline-none">
-            <button onclick="sendBooking()" class="w-full bg-rose-600 text-white p-5 rounded-xl font-bold mt-4 uppercase tracking-widest text-sm shadow-lg shadow-rose-900/20">
-                Записаться
+            <input type="text" id="client-name" placeholder="Введите ваше имя" class="w-full p-4 rounded-xl outline-none">
+            
+            <div class="pt-2">
+                <label class="text-[10px] uppercase text-slate-400 ml-1">Желаемая дата (день и месяц)</label>
+                <input type="text" id="book-date" placeholder="Например: 15 октября" class="w-full p-4 rounded-xl outline-none mt-1">
+            </div>
+
+            <button onclick="sendBooking()" class="w-full bg-gradient-to-r from-purple-600 to-rose-600 text-white p-5 rounded-xl font-bold mt-8 shadow-lg uppercase tracking-wider">
+                Подтвердить запись
             </button>
         </div>
     </div>
 
     <div id="profile-tab" class="p-4 hidden tab-content text-center">
         <div class="mt-10">
-            <img id="user-photo" src="https://via.placeholder.com/100" class="w-24 h-24 rounded-full mx-auto border-4 border-rose-600 shadow-xl mb-4">
-            <h2 id="user-name" class="text-xl font-bold text-white">Пользователь</h2>
-            <p class="text-slate-400 text-sm">Любимый клиент</p>
+            <img id="user-photo" src="https://via.placeholder.com/100" class="w-24 h-24 rounded-full mx-auto border-4 border-rose-500 shadow-2xl mb-4">
+            <h2 id="user-name" class="text-xl font-bold">Клиент</h2>
+            <p id="user-nick" class="text-rose-400 text-sm">@nickname</p>
         </div>
         <div class="mt-10 text-left">
-            <h3 class="text-rose-500 text-xs font-bold uppercase mb-4 ml-2">Мои прошлые записи</h3>
+            <h3 class="text-xs font-bold uppercase mb-4 opacity-50 ml-2">Ваша история</h3>
             <div id="history-list" class="space-y-3"></div>
         </div>
     </div>
 
     <nav class="bottom-nav">
         <div class="nav-item active" onclick="showTab('services')">
-            <i class="fas fa-list text-xl mb-1"></i>
-            <span>Услуги</span>
+            <i class="fas fa-list-ul text-xl mb-1"></i>
+            <span>Каталог</span>
         </div>
         <div class="nav-item" onclick="showTab('booking')">
-            <i class="fas fa-calendar-alt text-xl mb-1"></i>
+            <i class="fas fa-calendar-plus text-xl mb-1"></i>
             <span>Запись</span>
         </div>
         <div class="nav-item" onclick="showTab('profile')">
             <i class="fas fa-user text-xl mb-1"></i>
-            <span>Профиль</span>
+            <span>Мой профиль</span>
         </div>
     </nav>
 
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
-        tg.headerColor = "#1a1a2e";
-
+        
+        let clientUsername = "Не указан";
         if (tg.initDataUnsafe.user) {
             document.getElementById('user-name').innerText = tg.initDataUnsafe.user.first_name;
+            clientUsername = tg.initDataUnsafe.user.username ? "@" + tg.initDataUnsafe.user.username : "Скрыт";
+            document.getElementById('user-nick').innerText = clientUsername;
             if (tg.initDataUnsafe.user.photo_url) document.getElementById('user-photo').src = tg.initDataUnsafe.user.photo_url;
         }
 
         let selectedServices = [];
 
+        function toggleCategory(el) {
+            const list = el.nextElementSibling;
+            const icon = el.querySelector('i');
+            list.classList.toggle('open');
+            icon.classList.toggle('fa-chevron-up');
+            icon.classList.toggle('fa-chevron-down');
+        }
+
         function toggleService(el, name, price) {
             el.classList.toggle('selected');
-            const icon = el.querySelector('.check-box i');
+            const icon = el.querySelector('.check-circle i');
             const index = selectedServices.findIndex(s => s.name === name);
             if (index > -1) {
                 selectedServices.splice(index, 1);
@@ -206,8 +243,7 @@
                 return;
             }
             let total = selectedServices.reduce((sum, s) => sum + s.price, 0);
-            summary.innerHTML = `<div class='flex justify-between mb-1'><span>Выбрано услуг:</span> <span>${selectedServices.length}</span></div>` +
-                                `<div class='text-rose-400 font-bold text-lg flex justify-between'><span>Итого:</span> <span>${total} ₽</span></div>`;
+            summary.innerHTML = `<div class='flex justify-between mb-2'><span>Услуг: ${selectedServices.length}</span> <span class='text-rose-400 font-bold'>${total} ₽</span></div>`;
         }
 
         function showTab(tab) {
@@ -220,23 +256,24 @@
 
         function sendBooking() {
             const name = document.getElementById('client-name').value;
-            const phone = document.getElementById('client-phone').value;
             const date = document.getElementById('book-date').value;
 
-            if (!name || !phone || !date || selectedServices.length === 0) {
-                tg.showAlert("Заполните форму и выберите хотя бы одну услугу!");
+            if (!name || !date || selectedServices.length === 0) {
+                tg.showAlert("Укажите ваше имя, дату и выберите услуги!");
                 return;
             }
 
             const data = {
-                client: name, phone: phone, date: date,
+                client: name,
+                username: clientUsername,
+                date: date,
                 services: selectedServices,
                 total: selectedServices.reduce((sum, s) => sum + s.price, 0)
             };
 
-            let history = JSON.parse(localStorage.getItem('booking_history') || '[]');
-            history.unshift({...data, timestamp: new Date().toLocaleDateString()});
-            localStorage.setItem('booking_history', JSON.stringify(history));
+            let history = JSON.parse(localStorage.getItem('brighton_history') || '[]');
+            history.unshift(data);
+            localStorage.setItem('brighton_history', JSON.stringify(history));
 
             tg.sendData(JSON.stringify(data));
             tg.close();
@@ -244,18 +281,15 @@
 
         function loadHistory() {
             const list = document.getElementById('history-list');
-            let history = JSON.parse(localStorage.getItem('booking_history') || '[]');
+            let history = JSON.parse(localStorage.getItem('brighton_history') || '[]');
             if (history.length === 0) {
-                list.innerHTML = "<p class='text-center text-slate-500 text-[10px] mt-4'>История пуста</p>";
+                list.innerHTML = "<p class='text-center opacity-30 text-xs mt-4'>Записей еще нет</p>";
                 return;
             }
-            list.innerHTML = history.map(item => `
-                <div class="bg-[#16213e] p-3 rounded-xl border-l-2 border-rose-600 mb-2">
-                    <div class="flex justify-between text-[10px] text-slate-400 mb-1">
-                        <span>${item.date}</span>
-                        <span>${item.total} ₽</span>
-                    </div>
-                    <div class="text-[11px] text-white truncate">${item.services.map(s => s.name).join(', ')}</div>
+            list.innerHTML = history.slice(0, 5).map(item => `
+                <div class="bg-[#1b1b3a] p-3 rounded-lg border-l-2 border-purple-500">
+                    <div class="flex justify-between text-[10px] opacity-50"><span>${item.date}</span><span>${item.total} ₽</span></div>
+                    <div class="text-[11px] truncate">${item.services.map(s => s.name).join(', ')}</div>
                 </div>
             `).join('');
         }
