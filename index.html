@@ -297,12 +297,7 @@
     tg.sendData(JSON.stringify(data)); // Отправка данных боту
     tg.close();
 }
-            let history = JSON.parse(localStorage.getItem('brighton_history') || '[]');
-            history.unshift(data);
-            localStorage.setItem('brighton_history', JSON.stringify(history));
-            tg.sendData(JSON.stringify(data));
-            tg.close();
-        }
+           
 
         function loadHistory() {
             const list = document.getElementById('history-list');
