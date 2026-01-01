@@ -65,4 +65,174 @@
             background: var(--rose);
             border-color: var(--rose);
         }
-        .bottom-
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            height: 70px; background: rgba(15, 12, 41, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex; justify-content: space-around; align-items: center;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            z-index: 1000;
+        }
+        .nav-item { display: flex; flex-direction: column; align-items: center; opacity: 0.5; cursor: pointer; color: white; }
+        .nav-item.active { opacity: 1; color: var(--rose); }
+        input { background: #1b1b3a !important; color: white !important; border: 1px solid #333 !important; }
+    </style>
+</head>
+<body>
+
+    <div id="services-tab" class="p-4 tab-content">
+        <div class="text-center mb-6">
+            <h1 class="text-3xl font-serif italic">Brighton Beach</h1>
+            <p class="text-[11px] text-slate-400 mt-1">г. Москва, м. Бутырская</p>
+        </div>
+
+        <div id="catalog-container"></div>
+    </div>
+
+    <div id="booking-tab" class="p-4 hidden tab-content">
+        <h1 class="text-xl font-bold mb-6 text-rose-500 text-center">Ваша запись</h1>
+        <div id="order-summary" class="bg-[#1b1b3a] p-4 rounded-xl mb-6 text-sm border border-slate-700">
+            Выберите услуги в каталоге
+        </div>
+        <div class="space-y-4">
+            <input type="text" id="client-name" placeholder="Введите ваше имя" class="w-full p-4 rounded-xl outline-none">
+            <div class="pt-2">
+                <label class="text-[10px] uppercase text-slate-400 ml-1">Желаемая дата (день и время)</label>
+                <input type="text" id="book-date" placeholder="Например: 15 октября, 14:00" class="w-full p-4 rounded-xl outline-none mt-1">
+            </div>
+            <button onclick="sendBooking()" class="w-full bg-gradient-to-r from-purple-600 to-rose-600 text-white p-5 rounded-xl font-bold mt-8 shadow-lg uppercase tracking-wider">
+                Подтвердить запись
+            </button>
+        </div>
+    </div>
+
+    <div id="profile-tab" class="p-4 hidden tab-content text-center">
+        <div class="mt-10">
+            <img id="user-photo" src="https://via.placeholder.com/100" class="w-24 h-24 rounded-full mx-auto border-4 border-rose-500 shadow-2xl mb-4">
+            <h2 id="user-name" class="text-xl font-bold">Клиент</h2>
+            <p id="user-nick" class="text-rose-400 text-sm">@nickname</p>
+        </div>
+        <div class="mt-10 text-left">
+            <h3 class="text-xs font-bold uppercase mb-4 opacity-50 ml-2">История (локально)</h3>
+            <div id="history-list" class="space-y-3"></div>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-item active" onclick="showTab('services', this)"><i class="fas fa-list-ul text-xl mb-1"></i><span>Каталог</span></div>
+        <div class="nav-item" onclick="showTab('booking', this)"><i class="fas fa-calendar-plus text-xl mb-1"></i><span>Запись</span></div>
+        <div class="nav-item" onclick="showTab('profile', this)"><i class="fas fa-user text-xl mb-1"></i><span>Профиль</span></div>
+    </nav>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+        
+        const servicesData = {
+            "Ногтевой сервис": [
+                ["Аппаратный маникюр", 690], ["Выравнивание пластины", 390], ["Гелевое укрепление", 590],
+                ["Наращивание до 4 длины", 2000], ["Покрытие френч", 300], ["Педикюр (стопы+пальцы)", 1500],
+                ["Педикюр + гель-лак", 2600], ["Снятие гель-лака", 200]
+            ],
+            "Наращивание ресниц": [
+                ["Наращивание 2д", 2300], ["Наращивание 3д", 2500], ["Голливуд", 2990], ["Lami ресниц", 1790], ["Снятие", 390]
+            ],
+            "Брови": [
+                ["Ламинирование бровей", 1790], ["Окрашивание (краска)", 800], ["Коррекция бровей", 1000]
+            ],
+            "Перманентный макияж": [
+                ["Пудровые брови", 5990], ["Напыление губ", 5990], ["Стрелки", 5990]
+            ]
+        };
+
+        const container = document.getElementById('catalog-container');
+        for (const [category, list] of Object.entries(servicesData)) {
+            const wrap = document.createElement('div');
+            wrap.className = 'category-wrapper';
+            wrap.innerHTML = `
+                <div class="category-header" onclick="toggleCategory(this)">
+                    <span class="font-bold">${category}</span>
+                    <i class="fas fa-chevron-down text-xs"></i>
+                </div>
+                <div class="service-list">
+                    ${list.map(s => `
+                        <div class="service-card" onclick="toggleService(this, '${s[0]}', ${s[1]})">
+                            <div><div class="text-sm">${s[0]}</div><div class="text-rose-400 font-bold text-xs">${s[1]} ₽</div></div>
+                            <div class="check-circle"><i class="fas fa-check text-[10px] text-white hidden"></i></div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            container.appendChild(wrap);
+        }
+
+        let selectedServices = [];
+
+        function toggleCategory(el) {
+            const list = el.nextElementSibling;
+            const icon = el.querySelector('i');
+            list.classList.toggle('open');
+            icon.classList.toggle('fa-chevron-up');
+            icon.classList.toggle('fa-chevron-down');
+        }
+
+        function toggleService(el, name, price) {
+            el.classList.toggle('selected');
+            const icon = el.querySelector('.check-circle i');
+            const index = selectedServices.findIndex(s => s.name === name);
+            if (index > -1) {
+                selectedServices.splice(index, 1);
+                icon.classList.add('hidden');
+            } else {
+                selectedServices.push({name, price});
+                icon.classList.remove('hidden');
+            }
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const summary = document.getElementById('order-summary');
+            if (selectedServices.length === 0) {
+                summary.innerHTML = "Выберите услуги в каталоге";
+                return;
+            }
+            let total = selectedServices.reduce((sum, s) => sum + s.price, 0);
+            summary.innerHTML = `<div class='flex justify-between'><span>Выбрано: ${selectedServices.length}</span><span class='text-rose-400 font-bold'>${total} ₽</span></div>`;
+        }
+
+        function showTab(tab, el) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.getElementById(tab + '-tab').classList.remove('hidden');
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+            if(tab === 'profile') loadProfile();
+        }
+
+        function loadProfile() {
+            if (tg.initDataUnsafe.user) {
+                document.getElementById('user-name').innerText = tg.initDataUnsafe.user.first_name;
+                document.getElementById('user-nick').innerText = "@" + (tg.initDataUnsafe.user.username || "id" + tg.initDataUnsafe.user.id);
+                if (tg.initDataUnsafe.user.photo_url) document.getElementById('user-photo').src = tg.initDataUnsafe.user.photo_url;
+            }
+        }
+
+        function sendBooking() {
+            const name = document.getElementById('client-name').value;
+            const date = document.getElementById('book-date').value;
+            if (!name || !date || selectedServices.length === 0) {
+                tg.showAlert("Заполните данные и выберите услуги!");
+                return;
+            }
+            const data = {
+                client: name,
+                username: tg.initDataUnsafe.user ? "@" + tg.initDataUnsafe.user.username : "Скрыт",
+                date: date,
+                services: selectedServices,
+                total: selectedServices.reduce((sum, s) => sum + s.price, 0)
+            };
+            tg.sendData(JSON.stringify(data));
+            tg.close();
+        }
+    </script>
+</body>
+</html>
