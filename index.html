@@ -49,6 +49,7 @@
             justify-content: space-between;
             align-items: center;
             border: 1px solid transparent;
+            transition: 0.2s;
         }
         .service-card.selected {
             border-color: var(--rose);
@@ -59,7 +60,6 @@
             border: 2px solid #444;
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            transition: 0.2s;
         }
         .selected .check-circle {
             background: var(--rose);
@@ -71,6 +71,7 @@
             backdrop-filter: blur(10px);
             display: flex; justify-content: space-around; align-items: center;
             border-top: 1px solid rgba(255,255,255,0.1);
+            z-index: 1000;
         }
         input { background: #1b1b3a !important; color: white !important; border: 1px solid #333 !important; }
     </style>
@@ -92,13 +93,18 @@
                 <script>
                     const nails = [
                         ["Аппаратный маникюр", 690], ["Выравнивание пластины", 390], ["Гелевое укрепление", 590],
-                        ["Наращивание до 4 длины", 2000], ["Покрытие френч", 300], ["Снятие гель-лака", 200],
-                        ["Педикюр (стопы+пальцы)", 1500], ["Педикюр + гель-лак", 2600]
+                        ["Наращивание до 4 длины", 2000], ["Покрытие френч", 300], ["Цветной/Геом. френч", 390],
+                        ["Матовый топ", 200], ["Омбрэ (10 ногтей)", 500], ["Светоотражающий лак", 100],
+                        ["Сухоцветы (1 ноготь)", 100], ["Втирка (1 ноготь)", 50], ["Дизайн (слайдер/стразы)", 50],
+                        ["Наращивание 1 ногтя", 200], ["Ремонт ногтя", 200], ["Педикюр (стопы+пальцы)", 1500],
+                        ["Smart-педикюр (доп)", 590], ["Педикюр (пальчики)", 1300], ["Педикюр (мужской)", 2500],
+                        ["Педикюр (полный) + гель-лак", 2600], ["Педикюр (пальцы) + гель-лак", 1890],
+                        ["Снятие гель-лака", 200], ["Снятие геля/наращивания", 390]
                     ];
                     nails.forEach(s => {
                         document.write(`
                             <div class="service-card" onclick="toggleService(this, '${s[0]}', ${s[1]})">
-                                <div><div class="text-sm">${s[0]}</div><div class="text-rose-400 font-bold">${s[1]} ₽</div></div>
+                                <div><div class="text-sm">${s[0]}</div><div class="text-rose-400 font-bold text-xs">${s[1]} ₽</div></div>
                                 <div class="check-circle"><i class="fas fa-check text-[10px] text-white hidden"></i></div>
                             </div>
                         `);
@@ -109,19 +115,46 @@
 
         <div class="category-wrapper">
             <div class="category-header" onclick="toggleCategory(this)">
-                <span class="font-bold">Ресницы и Брови</span>
+                <span class="font-bold">Наращивание ресниц</span>
                 <i class="fas fa-chevron-down text-xs"></i>
             </div>
             <div class="service-list">
                 <script>
                     const lashes = [
-                        ["Наращивание 2Д", 2300], ["Наращивание 3Д", 2500], ["Голливудский объем", 2990],
-                        ["Ламинирование бровей", 1790], ["Коррекция бровей", 1000]
+                        ["Наращивание 1д", 2100], ["Наращивание 1.5д", 2100], ["Наращивание 2д", 2300],
+                        ["Наращивание 2.5д", 2300], ["Наращивание 3д", 2500], ["Наращивание 3.5д", 2500],
+                        ["Наращивание 4Д", 2700], ["Голливудский объем", 2990], ["Изгиб L/M", 300],
+                        ["Уголки", 1500], ["Цветные ресницы", 300], ["Коррекция ресниц", 1500],
+                        ["Снятие (с последующим)", 200], ["Снятие (без последующего)", 390],
+                        ["Эффект Кайли / Мокрый", 300], ["Lami ресниц", 1790]
                     ];
                     lashes.forEach(s => {
                         document.write(`
                             <div class="service-card" onclick="toggleService(this, '${s[0]}', ${s[1]})">
-                                <div><div class="text-sm">${s[0]}</div><div class="text-rose-400 font-bold">${s[1]} ₽</div></div>
+                                <div><div class="text-sm">${s[0]}</div><div class="text-rose-400 font-bold text-xs">${s[1]} ₽</div></div>
+                                <div class="check-circle"><i class="fas fa-check text-[10px] text-white hidden"></i></div>
+                            </div>
+                        `);
+                    });
+                </script>
+            </div>
+        </div>
+
+        <div class="category-wrapper">
+            <div class="category-header" onclick="toggleCategory(this)">
+                <span class="font-bold">Брови</span>
+                <i class="fas fa-chevron-down text-xs"></i>
+            </div>
+            <div class="service-list">
+                <script>
+                    const brows = [
+                        ["Ламинирование бровей", 1790], ["Окрашивание (краска)", 800],
+                        ["Коррекция бровей", 1000], ["Коррекция (воск)", 600]
+                    ];
+                    brows.forEach(s => {
+                        document.write(`
+                            <div class="service-card" onclick="toggleService(this, '${s[0]}', ${s[1]})">
+                                <div><div class="text-sm">${s[0]}</div><div class="text-rose-400 font-bold text-xs">${s[1]} ₽</div></div>
                                 <div class="check-circle"><i class="fas fa-check text-[10px] text-white hidden"></i></div>
                             </div>
                         `);
@@ -138,12 +171,14 @@
             <div class="service-list">
                 <script>
                     const perm = [
-                        ["Пудровые брови", 5990], ["Напыление губ", 5990], ["Стрелки", 5990]
+                        ["Пудровые брови", 5990], ["Напыление губ", 5990], ["Стрелки", 5990],
+                        ["Перекрытие старого татуажа", 5990], ["Коррекция (губы/брови)", 5990],
+                        ["Обезболивающее", 0]
                     ];
                     perm.forEach(s => {
                         document.write(`
-                            <div class="service-card" onclick="toggleService(this, '${s[0]}', ${s[1]})">
-                                <div><div class="text-sm">${s[0]}</div><div class="text-rose-400 font-bold">${s[1]} ₽</div></div>
+                            <div class="service-card" onclick="toggleService(this, '${s[0]}', ${s[1] === 0 ? 'В подарок' : s[1]})">
+                                <div><div class="text-sm">${s[0]}</div><div class="text-rose-400 font-bold text-xs">${s[1] === 0 ? 'В ПОДАРОК' : s[1] + ' ₽'}</div></div>
                                 <div class="check-circle"><i class="fas fa-check text-[10px] text-white hidden"></i></div>
                             </div>
                         `);
@@ -158,15 +193,12 @@
         <div id="order-summary" class="bg-[#1b1b3a] p-4 rounded-xl mb-6 text-sm border border-slate-700">
             Выберите услуги в каталоге
         </div>
-        
         <div class="space-y-4">
             <input type="text" id="client-name" placeholder="Введите ваше имя" class="w-full p-4 rounded-xl outline-none">
-            
             <div class="pt-2">
                 <label class="text-[10px] uppercase text-slate-400 ml-1">Желаемая дата (день и месяц)</label>
                 <input type="text" id="book-date" placeholder="Например: 15 октября" class="w-full p-4 rounded-xl outline-none mt-1">
             </div>
-
             <button onclick="sendBooking()" class="w-full bg-gradient-to-r from-purple-600 to-rose-600 text-white p-5 rounded-xl font-bold mt-8 shadow-lg uppercase tracking-wider">
                 Подтвердить запись
             </button>
@@ -186,24 +218,14 @@
     </div>
 
     <nav class="bottom-nav">
-        <div class="nav-item active" onclick="showTab('services')">
-            <i class="fas fa-list-ul text-xl mb-1"></i>
-            <span>Каталог</span>
-        </div>
-        <div class="nav-item" onclick="showTab('booking')">
-            <i class="fas fa-calendar-plus text-xl mb-1"></i>
-            <span>Запись</span>
-        </div>
-        <div class="nav-item" onclick="showTab('profile')">
-            <i class="fas fa-user text-xl mb-1"></i>
-            <span>Мой профиль</span>
-        </div>
+        <div class="nav-item active" onclick="showTab('services')"><i class="fas fa-list-ul text-xl mb-1"></i><span>Каталог</span></div>
+        <div class="nav-item" onclick="showTab('booking')"><i class="fas fa-calendar-plus text-xl mb-1"></i><span>Запись</span></div>
+        <div class="nav-item" onclick="showTab('profile')"><i class="fas fa-user text-xl mb-1"></i><span>Профиль</span></div>
     </nav>
 
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
-        
         let clientUsername = "Не указан";
         if (tg.initDataUnsafe.user) {
             document.getElementById('user-name').innerText = tg.initDataUnsafe.user.first_name;
@@ -239,11 +261,11 @@
         function updateSummary() {
             const summary = document.getElementById('order-summary');
             if (selectedServices.length === 0) {
-                summary.innerHTML = "Выберите услуги в каталоге...";
+                summary.innerHTML = "Выберите услуги...";
                 return;
             }
             let total = selectedServices.reduce((sum, s) => sum + s.price, 0);
-            summary.innerHTML = `<div class='flex justify-between mb-2'><span>Услуг: ${selectedServices.length}</span> <span class='text-rose-400 font-bold'>${total} ₽</span></div>`;
+            summary.innerHTML = `<div class='flex justify-between'><span>Выбрано: ${selectedServices.length}</span><span class='text-rose-400 font-bold'>${total} ₽</span></div>`;
         }
 
         function showTab(tab) {
@@ -257,24 +279,18 @@
         function sendBooking() {
             const name = document.getElementById('client-name').value;
             const date = document.getElementById('book-date').value;
-
             if (!name || !date || selectedServices.length === 0) {
-                tg.showAlert("Укажите ваше имя, дату и выберите услуги!");
+                tg.showAlert("Заполните все данные!");
                 return;
             }
-
             const data = {
-                client: name,
-                username: clientUsername,
-                date: date,
+                client: name, username: clientUsername, date: date,
                 services: selectedServices,
                 total: selectedServices.reduce((sum, s) => sum + s.price, 0)
             };
-
             let history = JSON.parse(localStorage.getItem('brighton_history') || '[]');
             history.unshift(data);
             localStorage.setItem('brighton_history', JSON.stringify(history));
-
             tg.sendData(JSON.stringify(data));
             tg.close();
         }
@@ -283,7 +299,7 @@
             const list = document.getElementById('history-list');
             let history = JSON.parse(localStorage.getItem('brighton_history') || '[]');
             if (history.length === 0) {
-                list.innerHTML = "<p class='text-center opacity-30 text-xs mt-4'>Записей еще нет</p>";
+                list.innerHTML = "<p class='text-center opacity-30 text-xs mt-4'>Записей нет</p>";
                 return;
             }
             list.innerHTML = history.slice(0, 5).map(item => `
