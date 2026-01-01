@@ -128,9 +128,13 @@
         </div>
         
         <div id="admin-zone" class="hidden mt-8">
-            <button onclick="tg.sendData(JSON.stringify({action: 'admin_view'}))" class="w-full bg-blue-600 p-4 rounded-xl font-bold text-sm uppercase">
+            <button onclick="showAdminRecords()" class="w-full bg-blue-600 p-4 rounded-xl font-bold text-sm uppercase mb-2">
                 <i class="fas fa-user-shield mr-2"></i>Записи клиентов
             </button>
+            <div id="admin-records-list" class="mt-4 space-y-3 text-left hidden">
+                <h3 class="text-rose-500 font-bold text-sm uppercase border-b border-rose-500/20 pb-1">Предстоящие записи:</h3>
+                <div id="records-content" class="text-xs space-y-2"></div>
+            </div>
         </div>
 
         <div class="mt-10 text-left">
@@ -267,10 +271,12 @@
         function sendBooking() {
             const name = document.getElementById('client-name').value;
             const date = document.getElementById('book-date').value;
+
             if (!name || !date || !selectedTime || selectedServices.length === 0) {
                 tg.showAlert("Заполните имя, выберите дату, время и услуги!");
                 return;
             }
+
             const data = {
                 action: "booking",
                 client: name,
@@ -280,7 +286,46 @@
                 services: selectedServices,
                 total: selectedServices.reduce((sum, s) => sum + s.price, 0)
             };
+
+            // Сохраняем в локальную память для админ-панели
+            const history = JSON.parse(localStorage.getItem('booking_history') || '[]');
+            history.push(data);
+            localStorage.setItem('booking_history', JSON.stringify(history));
+
+            // Отправляем боту
             tg.sendData(JSON.stringify(data));
+        }
+
+        function showAdminRecords() {
+            const list = document.getElementById('admin-records-list');
+            const content = document.getElementById('records-content');
+            
+            list.classList.toggle('hidden');
+            
+            if (!list.classList.contains('hidden')) {
+                const history = JSON.parse(localStorage.getItem('booking_history') || '[]');
+                
+                if (history.length === 0) {
+                    content.innerHTML = '<p class="text-slate-500 italic text-center py-2 text-[10px]">Записей пока нет</p>';
+                    return;
+                }
+
+                // Сортируем: новые сверху
+                history.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                content.innerHTML = history.map(reg => `
+                    <div class="bg-slate-800/60 p-2 rounded-lg border border-white/5 mb-2 text-left">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-rose-400 font-bold text-[11px]">${reg.date}</span>
+                            <span class="text-white opacity-80 text-[10px]">${reg.time}</span>
+                        </div>
+                        <div class="text-white text-[12px]">${reg.client}</div>
+                        <div class="text-[9px] text-slate-400 mt-1 italic">
+                            ${reg.services.map(s => s.name).join(', ')}
+                        </div>
+                    </div>
+                `).join('');
+            }
         }
     </script>
 </body>
