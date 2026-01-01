@@ -277,17 +277,26 @@
         }
 
         function sendBooking() {
-            const name = document.getElementById('client-name').value;
-            const date = document.getElementById('book-date').value;
-            if (!name || !date || selectedServices.length === 0) {
-                tg.showAlert("Заполните все данные!");
-                return;
-            }
-            const data = {
-                client: name, username: clientUsername, date: date,
-                services: selectedServices,
-                total: selectedServices.reduce((sum, s) => sum + s.price, 0)
-            };
+    const name = document.getElementById('client-name').value;
+    const date = document.getElementById('book-date').value;
+    
+    // Убрали проверку телефона, так как его нет в форме
+    if (!name || !date || selectedServices.length === 0) {
+        tg.showAlert("Заполните имя, дату и выберите услуги!");
+        return;
+    }
+    
+    const data = {
+        client: name,
+        username: clientUsername, // Берется из Telegram автоматически
+        date: date,
+        services: selectedServices,
+        total: selectedServices.reduce((sum, s) => sum + s.price, 0)
+    };
+    
+    tg.sendData(JSON.stringify(data)); // Отправка данных боту
+    tg.close();
+}
             let history = JSON.parse(localStorage.getItem('brighton_history') || '[]');
             history.unshift(data);
             localStorage.setItem('brighton_history', JSON.stringify(history));
