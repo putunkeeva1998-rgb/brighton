@@ -22,17 +22,36 @@
             margin: 0; padding-bottom: 100px;
             min-height: 100vh;
         }
-        /* НОВОЕ: Стиль для заголовков категорий */
-        .admin-category-title {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 5px 10px;
-            border-radius: 5px;
-            color: var(--rose);
-            font-weight: bold;
-            font-size: 12px;
+
+        /* Плитки категорий админа */
+        .admin-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
             margin-top: 15px;
-            border-left: 3px solid var(--rose);
         }
+        .admin-card-btn {
+            background: var(--bg-card);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 20px 10px;
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .admin-card-btn i { font-size: 24px; margin-bottom: 8px; display: block; color: var(--rose); }
+        .admin-card-btn span { font-size: 11px; font-weight: bold; text-transform: uppercase; }
+
+        /* Крупная дата */
+        .big-date {
+            font-size: 20px;
+            font-weight: 800;
+            color: #fff;
+            display: block;
+            border-bottom: 1px solid rgba(233, 69, 96, 0.3);
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+        }
+
         .category-wrapper {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 15px;
@@ -72,10 +91,7 @@
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
         }
-        .selected .check-circle {
-            background: var(--rose);
-            border-color: var(--rose);
-        }
+        .selected .check-circle { background: var(--rose); border-color: var(--rose); }
         
         .time-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; }
         .time-slot { 
@@ -132,24 +148,40 @@
     </div>
 
     <div id="profile-tab" class="p-4 hidden tab-content text-center">
-        <div class="mt-10">
-            <img id="user-photo" src="https://via.placeholder.com/100" class="w-24 h-24 rounded-full mx-auto border-4 border-rose-500 shadow-2xl mb-4">
-            <h2 id="user-name" class="text-xl font-bold">Клиент</h2>
-            <p id="user-nick" class="text-rose-400 text-sm">@nickname</p>
+        <div class="mt-6">
+            <img id="user-photo" src="https://via.placeholder.com/100" class="w-20 h-20 rounded-full mx-auto border-4 border-rose-500 mb-2">
+            <h2 id="user-name" class="text-lg font-bold">Клиент</h2>
+            <p id="user-nick" class="text-rose-400 text-xs">@nickname</p>
         </div>
         
-        <div id="admin-zone" class="hidden mt-8">
-            <button onclick="showAdminRecords()" class="w-full bg-blue-600 p-4 rounded-xl font-bold text-sm uppercase mb-2">
-                <i class="fas fa-user-shield mr-2"></i>Записи клиентов
-            </button>
-            <div id="admin-records-list" class="mt-4 space-y-3 text-left hidden">
-                <h3 class="text-rose-500 font-bold text-sm uppercase border-b border-rose-500/20 pb-1">Предстоящие записи:</h3>
-                <div id="records-content" class="text-xs space-y-2"></div>
+        <div id="admin-zone" class="hidden mt-8 text-left">
+            <h3 class="text-rose-500 font-bold text-xs uppercase ml-2 mb-2">Панель Администратора</h3>
+            <div class="admin-grid">
+                <div class="admin-card-btn" onclick="showAdminCategory('Ногти')">
+                    <i class="fas fa-hand-sparkles"></i><span>Ногти</span>
+                </div>
+                <div class="admin-card-btn" onclick="showAdminCategory('Ресницы')">
+                    <i class="fas fa-eye"></i><span>Ресницы</span>
+                </div>
+                <div class="admin-card-btn" onclick="showAdminCategory('Брови')">
+                    <i class="fas fa-eye-dropper"></i><span>Брови</span>
+                </div>
+                <div class="admin-card-btn" onclick="showAdminCategory('Перманент')">
+                    <i class="fas fa-magic"></i><span>ПМ</span>
+                </div>
+            </div>
+            
+            <div id="admin-records-list" class="mt-6 hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 id="admin-cat-title" class="text-white font-bold uppercase text-sm italic"></h3>
+                    <button onclick="this.parentElement.parentElement.classList.add('hidden')" class="text-[10px] opacity-50">Закрыть</button>
+                </div>
+                <div id="records-content" class="space-y-4"></div>
             </div>
         </div>
 
         <div class="mt-10 text-left">
-            <h3 class="text-xs font-bold uppercase mb-4 opacity-50 ml-2">История (локально)</h3>
+            <h3 class="text-xs font-bold uppercase mb-4 opacity-50 ml-2 text-rose-500">Мои ближайшие записи</h3>
             <div id="history-list" class="space-y-3"></div>
         </div>
     </div>
@@ -184,6 +216,7 @@
             ]
         };
 
+        // Рендер каталога
         const container = document.getElementById('catalog-container');
         for (const [category, list] of Object.entries(servicesData)) {
             const wrap = document.createElement('div');
@@ -203,27 +236,6 @@
                 </div>
             `;
             container.appendChild(wrap);
-        }
-
-        function generateTimeSlots() {
-            const grid = document.getElementById('time-grid');
-            const section = document.getElementById('time-section');
-            const slots = ["10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"];
-            
-            grid.innerHTML = '';
-            section.classList.remove('hidden');
-            
-            slots.forEach(time => {
-                const div = document.createElement('div');
-                div.className = 'time-slot';
-                div.innerText = time;
-                div.onclick = () => {
-                    document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
-                    div.classList.add('selected');
-                    selectedTime = time;
-                };
-                grid.appendChild(div);
-            });
         }
 
         function toggleCategory(el) {
@@ -258,6 +270,19 @@
             summary.innerHTML = `<div class='flex justify-between'><span>Выбрано: ${selectedServices.length}</span><span class='text-rose-400 font-bold'>${total} ₽</span></div>`;
         }
 
+        function generateTimeSlots() {
+            const grid = document.getElementById('time-grid');
+            document.getElementById('time-section').classList.remove('hidden');
+            const slots = ["10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"];
+            grid.innerHTML = slots.map(t => `<div class="time-slot" onclick="selectTime(this, '${t}')">${t}</div>`).join('');
+        }
+
+        function selectTime(el, t) {
+            document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedTime = t;
+        }
+
         function showTab(tab, el) {
             document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
             document.getElementById(tab + '-tab').classList.remove('hidden');
@@ -272,22 +297,19 @@
                 document.getElementById('user-name').innerText = user.first_name;
                 document.getElementById('user-nick').innerText = "@" + (user.username || "id" + user.id);
                 if (user.photo_url) document.getElementById('user-photo').src = user.photo_url;
-                
-                if (user.id === 387881523) {
-                    document.getElementById('admin-zone').classList.remove('hidden');
-                }
+                if (user.id === 387881523) document.getElementById('admin-zone').classList.remove('hidden');
             }
+            renderUserHistory();
         }
 
+        // ОТПРАВКА ЗАПИСИ
         function sendBooking() {
             const name = document.getElementById('client-name').value;
             const date = document.getElementById('book-date').value;
-
             if (!name || !date || !selectedTime || selectedServices.length === 0) {
-                tg.showAlert("Заполните все поля и выберите услуги!");
+                tg.showAlert("Заполните все поля!");
                 return;
             }
-
             const data = {
                 action: "booking",
                 client: name,
@@ -297,80 +319,105 @@
                 services: selectedServices,
                 total: selectedServices.reduce((sum, s) => sum + s.price, 0)
             };
-
             const history = JSON.parse(localStorage.getItem('booking_history') || '[]');
             history.push(data);
             localStorage.setItem('booking_history', JSON.stringify(history));
-
             tg.sendData(JSON.stringify(data));
         }
 
-        // НОВОЕ: Полностью обновленная функция отображения записей
-        function showAdminRecords() {
+        // ЛОГИКА АДМИНА: КАТЕГОРИИ И УДАЛЕНИЕ
+        function showAdminCategory(cat) {
             const list = document.getElementById('admin-records-list');
             const content = document.getElementById('records-content');
-            
-            list.classList.toggle('hidden');
-            
-            if (!list.classList.contains('hidden')) {
-                const history = JSON.parse(localStorage.getItem('booking_history') || '[]');
-                
-                if (history.length === 0) {
-                    content.innerHTML = '<p class="text-slate-500 italic text-center py-2 text-[10px]">Записей пока нет</p>';
-                    return;
-                }
+            const title = document.getElementById('admin-cat-title');
+            list.classList.remove('hidden');
+            title.innerText = "Записи: " + cat;
 
-                const cats = {
-                    "Ресницы": [],
-                    "Брови": [],
-                    "Перманентный макияж": [],
-                    "Прочее": []
-                };
+            const history = JSON.parse(localStorage.getItem('booking_history') || '[]');
+            const filtered = history.filter(reg => {
+                const names = reg.services.map(s => s.name).join(" ").toLowerCase();
+                if (cat === 'Ногти') return names.includes("маникюр") || names.includes("педи") || names.includes("гель");
+                if (cat === 'Ресницы') return names.includes("ресниц");
+                if (cat === 'Брови') return names.includes("бров") && !names.includes("пудров");
+                if (cat === 'Перманент') return names.includes("пудров") || names.includes("напыление") || names.includes("стрел");
+                return false;
+            }).sort((a,b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
 
-                history.forEach(reg => {
-                    const serviceNames = reg.services.map(s => s.name).join(" ").toLowerCase();
-                    
-                    if (serviceNames.includes("ресниц")) {
-                        cats["Ресницы"].push(reg);
-                    } else if (serviceNames.includes("бров")) {
-                        cats["Брови"].push(reg);
-                    } else if (serviceNames.includes("пудров") || serviceNames.includes("напыление") || serviceNames.includes("стрелки")) {
-                        cats["Перманентный макияж"].push(reg);
-                    } else {
-                        cats["Прочее"].push(reg);
-                    }
-                });
+            if (filtered.length === 0) {
+                content.innerHTML = '<p class="text-center opacity-30 py-4">Нет записей</p>';
+                return;
+            }
 
-                const renderCat = (title, items) => {
-                    if (items.length === 0) return "";
-                    
-                    items.sort((a, b) => a.time.localeCompare(b.time));
+            content.innerHTML = filtered.map((reg) => `
+                <div class="bg-slate-800/60 p-4 rounded-xl border border-white/5">
+                    <span class="big-date">${reg.date.split('-').reverse().join('.')}</span>
+                    <div class="flex justify-between items-center text-sm mb-2">
+                        <span class="text-rose-400 font-bold">${reg.time}</span>
+                        <span class="font-bold">${reg.client}</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 italic mb-2">${reg.services.map(s => s.name).join(', ')}</p>
+                    <div class="flex justify-between items-center border-t border-white/5 pt-2">
+                        <span class="text-[10px] text-blue-400">${reg.username}</span>
+                        <button onclick="adminDeleteRecord('${reg.date}','${reg.time}','${reg.client}')" class="text-[10px] bg-rose-500/20 text-rose-500 px-3 py-1 rounded">Удалить</button>
+                    </div>
+                </div>
+            `).join('');
+        }
 
-                    return `
-                        <div class="admin-category-title">${title}</div>
-                        ${items.map(reg => `
-                            <div class="bg-slate-800/60 p-3 rounded-lg border border-white/5 mt-2 flex flex-col gap-1">
-                                <div class="flex justify-between items-center">
-                                    <span class="text-white font-bold text-[12px]">${reg.time} — ${reg.client}</span>
-                                    <span class="text-[10px] text-slate-400">${reg.date}</span>
-                                </div>
-                                <div class="flex justify-between text-[11px]">
-                                    <span class="text-rose-400 italic">${reg.services.map(s => s.name).join(", ")}</span>
-                                    <span class="font-bold text-white">${reg.total} ₽</span>
-                                </div>
-                                <div class="text-[10px] text-blue-400">👤 ${reg.username}</div>
-                            </div>
-                        `).join('')}
-                    `;
-                };
-
-                content.innerHTML = 
-                    renderCat("👁 Ресницы", cats["Ресницы"]) +
-                    renderCat("🤨 Брови", cats["Брови"]) +
-                    renderCat("👄 Перманентный макияж", cats["Перманентный макияж"]) +
-                    renderCat("💅 Ногтевой сервис / Прочее", cats["Прочее"]);
+        function adminDeleteRecord(date, time, client) {
+            if(confirm("Удалить запись?")) {
+                let history = JSON.parse(localStorage.getItem('booking_history') || '[]');
+                history = history.filter(h => !(h.date === date && h.time === time && h.client === client));
+                localStorage.setItem('booking_history', JSON.stringify(history));
+                showAdminCategory(document.getElementById('admin-cat-title').innerText.replace("Записи: ",""));
             }
         }
+
+        // ЛОГИКА КЛИЕНТА: ОТМЕНИТЬ И ПЕРЕНЕСТИ
+        function renderUserHistory() {
+            const list = document.getElementById('history-list');
+            const history = JSON.parse(localStorage.getItem('booking_history') || '[]');
+            // Для теста показываем все записи в локалсторадже
+            if (history.length === 0) {
+                list.innerHTML = '<p class="text-[10px] opacity-30 ml-2">История пуста</p>';
+                return;
+            }
+
+            list.innerHTML = history.map((reg, idx) => `
+                <div class="bg-white/5 p-4 rounded-xl border border-white/10">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <span class="text-xs text-rose-400 font-bold">${reg.date} в ${reg.time}</span>
+                            <div class="text-[11px] text-white mt-1">${reg.services.map(s => s.name).join(', ')}</div>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 mt-3">
+                        <button onclick="userCancel(${idx})" class="flex-1 text-[10px] bg-rose-600/20 text-rose-400 py-2 rounded-lg font-bold border border-rose-600/30">ОТМЕНИТЬ</button>
+                        <button onclick="userReschedule(${idx})" class="flex-1 text-[10px] bg-blue-600/20 text-blue-400 py-2 rounded-lg font-bold border border-blue-600/30">ПЕРЕНЕСТИ</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function userCancel(idx) {
+            if(confirm("Отменить эту запись? Администратор получит уведомление.")) {
+                const history = JSON.parse(localStorage.getItem('booking_history') || '[]');
+                const canceled = history.splice(idx, 1)[0];
+                localStorage.setItem('booking_history', JSON.stringify(history));
+                tg.sendData(JSON.stringify({ action: "cancel", detail: canceled }));
+                renderUserHistory();
+            }
+        }
+
+        function userReschedule(idx) {
+            const history = JSON.parse(localStorage.getItem('booking_history') || '[]');
+            const record = history[idx];
+            tg.showAlert("Выберите новые услуги и время. Мы сообщим мастеру о переносе записи на " + record.date);
+            // Перекидываем в каталог
+            showTab('services', document.querySelector('.nav-item'));
+            // Опционально: посылаем сигнал боту, что клиент начал процесс переноса
+        }
+
     </script>
 </body>
 </html>
