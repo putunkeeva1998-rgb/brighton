@@ -22,6 +22,17 @@
             margin: 0; padding-bottom: 100px;
             min-height: 100vh;
         }
+        /* НОВОЕ: Стиль для заголовков категорий */
+        .admin-category-title {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 5px 10px;
+            border-radius: 5px;
+            color: var(--rose);
+            font-weight: bold;
+            font-size: 12px;
+            margin-top: 15px;
+            border-left: 3px solid var(--rose);
+        }
         .category-wrapper {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 15px;
@@ -269,65 +280,97 @@
         }
 
         function sendBooking() {
-        const name = document.getElementById('client-name').value;
-        const date = document.getElementById('book-date').value;
+            const name = document.getElementById('client-name').value;
+            const date = document.getElementById('book-date').value;
 
-        if (!name || !date || !selectedTime || selectedServices.length === 0) {
-            tg.showAlert("Заполните все поля и выберите услуги!");
-            return;
-        }
-
-        const data = {
-            action: "booking",
-            client: name,
-            username: tg.initDataUnsafe.user ? "@" + tg.initDataUnsafe.user.username : "Скрыт",
-            date: date,
-            time: selectedTime,
-            services: selectedServices,
-            total: selectedServices.reduce((sum, s) => sum + s.price, 0)
-        };
-
-        // 1. Сохраняем локально (для вкладки в приложении)
-        const history = JSON.parse(localStorage.getItem('booking_history') || '[]');
-        history.push(data);
-        localStorage.setItem('booking_history', JSON.stringify(history));
-
-        // 2. Отправляем данные боту (приложение закроется)
-        tg.sendData(JSON.stringify(data));
-    }
-
-    // ФУНКЦИЯ ОТОБРАЖЕНИЯ СПИСКА В ПРОФИЛЕ
-    function showAdminRecords() {
-        const list = document.getElementById('admin-records-list');
-        const content = document.getElementById('records-content');
-        
-        list.classList.toggle('hidden');
-        
-        if (!list.classList.contains('hidden')) {
-            const history = JSON.parse(localStorage.getItem('booking_history') || '[]');
-            
-            if (history.length === 0) {
-                content.innerHTML = '<p class="text-slate-500 italic text-center py-2 text-[10px]">Записей пока нет</p>';
+            if (!name || !date || !selectedTime || selectedServices.length === 0) {
+                tg.showAlert("Заполните все поля и выберите услуги!");
                 return;
             }
 
-            // Сортируем: сначала новые даты
-            history.sort((a, b) => new Date(b.date) - new Date(a.date));
+            const data = {
+                action: "booking",
+                client: name,
+                username: tg.initDataUnsafe.user ? "@" + tg.initDataUnsafe.user.username : "Скрыт",
+                date: date,
+                time: selectedTime,
+                services: selectedServices,
+                total: selectedServices.reduce((sum, s) => sum + s.price, 0)
+            };
 
-            content.innerHTML = history.map(reg => `
-                <div class="bg-slate-800/60 p-2 rounded-lg border border-white/5 mb-2 text-left">
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="text-rose-400 font-bold text-[11px]">${reg.date}</span>
-                        <span class="text-white opacity-80 text-[10px]">${reg.time}</span>
-                    </div>
-                    <div class="text-white text-[12px]">${reg.client}</div>
-                    <div class="text-[9px] text-slate-400 mt-1 italic">
-                        ${reg.services.map(s => s.name).join(', ')}
-                    </div>
-                </div>
-            `).join('');
+            const history = JSON.parse(localStorage.getItem('booking_history') || '[]');
+            history.push(data);
+            localStorage.setItem('booking_history', JSON.stringify(history));
+
+            tg.sendData(JSON.stringify(data));
         }
-    }
-</script>
+
+        // НОВОЕ: Полностью обновленная функция отображения записей
+        function showAdminRecords() {
+            const list = document.getElementById('admin-records-list');
+            const content = document.getElementById('records-content');
+            
+            list.classList.toggle('hidden');
+            
+            if (!list.classList.contains('hidden')) {
+                const history = JSON.parse(localStorage.getItem('booking_history') || '[]');
+                
+                if (history.length === 0) {
+                    content.innerHTML = '<p class="text-slate-500 italic text-center py-2 text-[10px]">Записей пока нет</p>';
+                    return;
+                }
+
+                const cats = {
+                    "Ресницы": [],
+                    "Брови": [],
+                    "Перманентный макияж": [],
+                    "Прочее": []
+                };
+
+                history.forEach(reg => {
+                    const serviceNames = reg.services.map(s => s.name).join(" ").toLowerCase();
+                    
+                    if (serviceNames.includes("ресниц")) {
+                        cats["Ресницы"].push(reg);
+                    } else if (serviceNames.includes("бров")) {
+                        cats["Брови"].push(reg);
+                    } else if (serviceNames.includes("пудров") || serviceNames.includes("напыление") || serviceNames.includes("стрелки")) {
+                        cats["Перманентный макияж"].push(reg);
+                    } else {
+                        cats["Прочее"].push(reg);
+                    }
+                });
+
+                const renderCat = (title, items) => {
+                    if (items.length === 0) return "";
+                    
+                    items.sort((a, b) => a.time.localeCompare(b.time));
+
+                    return `
+                        <div class="admin-category-title">${title}</div>
+                        ${items.map(reg => `
+                            <div class="bg-slate-800/60 p-3 rounded-lg border border-white/5 mt-2 flex flex-col gap-1">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-white font-bold text-[12px]">${reg.time} — ${reg.client}</span>
+                                    <span class="text-[10px] text-slate-400">${reg.date}</span>
+                                </div>
+                                <div class="flex justify-between text-[11px]">
+                                    <span class="text-rose-400 italic">${reg.services.map(s => s.name).join(", ")}</span>
+                                    <span class="font-bold text-white">${reg.total} ₽</span>
+                                </div>
+                                <div class="text-[10px] text-blue-400">👤 ${reg.username}</div>
+                            </div>
+                        `).join('')}
+                    `;
+                };
+
+                content.innerHTML = 
+                    renderCat("👁 Ресницы", cats["Ресницы"]) +
+                    renderCat("🤨 Брови", cats["Брови"]) +
+                    renderCat("👄 Перманентный макияж", cats["Перманентный макияж"]) +
+                    renderCat("💅 Ногтевой сервис / Прочее", cats["Прочее"]);
+            }
+        }
+    </script>
 </body>
 </html>
