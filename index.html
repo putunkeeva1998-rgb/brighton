@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Brighton Beach App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --tg-theme-bg-color: #ffffff;
+            --tg-theme-secondary-bg-color: #f4f4f5;
+            --tg-theme-text-color: #000000;
+            --tg-theme-button-color: #000000;
+            --tg-theme-button-text-color: #ffffff;
+            --tg-theme-hint-color: #8c8c8c;
+        }
+        body { 
+            background-color: var(--tg-theme-bg-color); 
+            color: var(--tg-theme-text-color); 
+            font-family: 'Georgia', serif; /* Более элегантный шрифт под ваш стиль */
+            margin: 0; padding-bottom: 90px;
+        }
+        .category-title {
+            border-bottom: 1px solid var(--tg-theme-hint-color);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .service-card {
+            background-color: var(--tg-theme-secondary-bg-color);
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        .service-card.selected {
+            border-color: #000;
+            background-color: #f0f0f0;
+        }
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            height: 75px; background: white;
+            border-top: 1px solid #eee;
+            display: flex; justify-content: space-around; align-items: center;
+            z-index: 1000;
+        }
+        .nav-item { display: flex; flex-direction: column; align-items: center; font-size: 12px; color: #888; }
+        .nav-item.active { color: #000; font-weight: bold; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="services-tab" class="p-4">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl italic">Brighton Beach</h1>
+            <p class="text-xs uppercase tracking-widest opacity-60">Студия красоты</p>
+        </div>
+
+        <h2 class="category-title text-sm font-bold mb-4 pb-1">Ногтевой сервис</h2>
+        <div class="space-y-2 mb-8">
+            <div class="service-card p-3 rounded-lg flex justify-between items-center" onclick="toggleService(this, 'Маникюр + покрытие гель-лаком', 1490)">
+                <span class="text-sm">Маникюр + покрытие гель-лаком</span>
+                <span class="font-bold">1490 ₽</span>
+            </div>
+            <div class="service-card p-3 rounded-lg flex justify-between items-center" onclick="toggleService(this, 'Мужской маникюр', 1200)">
+                <span class="text-sm">Мужской маникюр</span>
+                <span class="font-bold">1200 ₽</span>
+            </div>
+            <div class="service-card p-3 rounded-lg flex justify-between items-center" onclick="toggleService(this, 'Аппаратный маникюр', 690)">
+                <span class="text-sm">Аппаратный маникюр</span>
+                <span class="font-bold">690 ₽</span>
+            </div>
+            <div class="service-card p-3 rounded-lg flex justify-between items-center" onclick="toggleService(this, 'Педикюр (пальчики + обработка стоп)', 1500)">
+                <span class="text-sm">Педикюр (стопы + пальцы)</span>
+                <span class="font-bold">1500 ₽</span>
+            </div>
+        </div>
+
+        <h2 class="category-title text-sm font-bold mb-4 pb-1">Наращивание ресниц</h2>
+        <div class="space-y-2 mb-8">
+            <div class="service-card p-3 rounded-lg flex justify-between items-center" onclick="toggleService(this, 'Наращивание ресниц 2Д', 2300)">
+                <span class="text-sm">Классика / 2Д объем</span>
+                <span class="font-bold">2300 ₽</span>
+            </div>
+            <div class="service-card p-3 rounded-lg flex justify-between items-center" onclick="toggleService(this, 'Голливудский объем', 2990)">
+                <span class="text-sm">Голливудский объем</span>
+                <span class="font-bold">2990 ₽</span>
+            </div>
+            <div class="service-card p-3 rounded-lg flex justify-between items-center" onclick="toggleService(this, 'Ламинирование бровей', 1790)">
+                <span class="text-sm">Ламинирование бровей</span>
+                <span class="font-bold">1790 ₽</span>
+            </div>
+        </div>
+
+        <h2 class="category-title text-sm font-bold mb-4 pb-1">Перманентный макияж</h2>
+        <div class="space-y-2 mb-8">
+            <div class="service-card p-3 rounded-lg flex justify-between items-center" onclick="toggleService(this, 'Пудровые брови', 5990)">
+                <span class="text-sm">Пудровые брови</span>
+                <span class="font-bold">5990 ₽</span>
+            </div>
+            <div class="service-card p-3 rounded-lg flex justify-between items-center" onclick="toggleService(this, 'Напыление губ', 5990)">
+                <span class="text-sm">Напыление губ</span>
+                <span class="font-bold">5990 ₽</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="booking-tab" class="p-4 hidden">
+        <h1 class="text-xl font-bold mb-6">Оформление записи</h1>
+        <div id="order-summary" class="bg-gray-100 p-4 rounded-xl mb-6 text-sm italic">
+            Выберите услуги в каталоге...
+        </div>
+        
+        <div class="space-y-4">
+            <input type="text" id="client-name" placeholder="Ваше имя" class="w-full p-3 border-b outline-none">
+            <input type="tel" id="client-phone" placeholder="Телефон" class="w-full p-3 border-b outline-none">
+            
+            <div class="pt-4">
+                <label class="text-xs uppercase opacity-50">Выберите дату визита:</label>
+                <input type="date" id="book-date" class="w-full p-3 border-b outline-none">
+            </div>
+
+            <button onclick="sendBooking()" class="w-full bg-black text-white p-4 rounded-full font-bold mt-8 uppercase tracking-widest text-sm">
+                Записаться
+            </button>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-item active" onclick="showTab('services')">
+            <i class="fas fa-th-large mb-1"></i>
+            <span>Услуги</span>
+        </div>
+        <div class="nav-item" onclick="showTab('booking')">
+            <i class="fas fa-clock mb-1"></i>
+            <span>Запись</span>
+        </div>
+    </nav>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+        
+        let selectedServices = [];
+
+        function toggleService(el, name, price) {
+            el.classList.toggle('selected');
+            const index = selectedServices.findIndex(s => s.name === name);
+            if (index > -1) {
+                selectedServices.splice(index, 1);
+            } else {
+                selectedServices.push({name, price});
+            }
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const summary = document.getElementById('order-summary');
+            if (selectedServices.length === 0) {
+                summary.innerHTML = "Выберите услуги...";
+                return;
+            }
+            let total = selectedServices.reduce((sum, s) => sum + s.price, 0);
+            summary.innerHTML = `<b>Выбрано:</b> ${selectedServices.map(s => s.name).join(', ')}<br><b>К оплате:</b> ${total} ₽`;
+        }
+
+        function showTab(tab) {
+            document.getElementById('services-tab').classList.add('hidden');
+            document.getElementById('booking-tab').classList.add('hidden');
+            document.getElementById(tab + '-tab').classList.remove('hidden');
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+        }
+
+        function sendBooking() {
+            const name = document.getElementById('client-name').value;
+            const phone = document.getElementById('client-phone').value;
+            const date = document.getElementById('book-date').value;
+
+            if (!name || !phone || !date || selectedServices.length === 0) {
+                tg.showAlert("Заполните все поля для записи!");
+                return;
+            }
+
+            const data = {
+                client: name,
+                phone: phone,
+                date: date,
+                services: selectedServices,
+                total: selectedServices.reduce((sum, s) => sum + s.price, 0)
+            };
+
+            tg.sendData(JSON.stringify(data));
+            tg.close();
+        }
+    </script>
+</body>
+</html>
